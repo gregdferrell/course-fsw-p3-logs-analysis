@@ -1,8 +1,6 @@
-from logsanalysis.db_init import conn
+from logsanalysis.log_service import get_authors
 
-# Test DB conn
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM authors")
-rows = cursor.fetchall()
-conn.close()
-print(rows)
+
+if __name__ == "__main__":
+    for author in get_authors():
+        print(author)

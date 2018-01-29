@@ -1,3 +1,5 @@
+# Handles PostgreSQL DB initialization
+
 import configparser
 
 import os
