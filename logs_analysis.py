@@ -2,11 +2,13 @@
 #
 #
 
+import re
+
 import psycopg2
 
 DB_SERVER = ''  # TODO Fill this in
 DB_PORT = ''  # TODO Fill this in
-DB_NAME = ''  # TODO Fill this in
+DB_NAME = 'news'  # TODO Fill this in
 DB_USER = ''  # TODO Fill this in
 DB_PASSWORD = ''  # TODO Fill this in
 
@@ -28,7 +30,12 @@ SQL_GET_MOST_POPULAR_AUTHORS = """
 """
 
 SQL_GET_DAYS_WITH_HIGH_ERRORS = """
-    TODO
+    SELECT to_char(time, 'Month DD, YYYY') AS dt,
+        count(*) FILTER (WHERE status LIKE '2%') AS count_success,
+        count(*) AS count_total
+    FROM log
+    GROUP BY dt
+    ORDER BY dt
 """
 
 
@@ -62,7 +69,7 @@ def get_days_with_high_errors():
     cursor.execute(SQL_GET_DAYS_WITH_HIGH_ERRORS)
     rows = cursor.fetchall()
     conn.close()
-    return [(row[0], row[1]) for row in rows]
+    return [(row[0], row[1], row[2]) for row in rows]
 
 
 if __name__ == "__main__":
@@ -79,4 +86,7 @@ if __name__ == "__main__":
     # 3. List days with HTTP error response rate >= 1%
     print('\nDays with error response rate >= 1%:')
     for day in get_days_with_high_errors():
-        print(f"\"{day[0]}\" - {day[1]} errors")
+        # Calculate percent error and round to two decimal places
+        percent_error = round(100 * (day[2] - day[1]) / day[2], 2)
+        if percent_error >= 1:
+            print(re.sub(' +', ' ', f"{day[0]} - {percent_error}% errors"))
