@@ -9,7 +9,7 @@ It is a single Python script that connects to a PostgreSQL database (DB schema/d
 * psycopg2==2.7.3.1
 
 ### Setup
-* Set DB connection constants in logs_analysis.py
+* Set DB connection constants in `logs_analysis.py`
 
 ### Running the App
-* Execute "python logs_analysis.py" to run the app.
+* Execute `python logs_analysis.py` to run the app.

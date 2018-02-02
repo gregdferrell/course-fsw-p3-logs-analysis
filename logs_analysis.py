@@ -3,6 +3,7 @@
 #
 
 import re
+import sys
 
 import psycopg2
 
@@ -39,54 +40,68 @@ SQL_GET_DAYS_WITH_HIGH_ERRORS = """
 """
 
 
-def get_db_connection():
-    return psycopg2.connect(
-        f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_SERVER}' " +
-        F"port='{DB_PORT}' password='{DB_PASSWORD}'")
+def connect():
+    """
+    Connect to the PostgreSQL database.
+    :return: Returns a tuple of database connection and cursor.
+    """
+    try:
+        db = psycopg2.connect(
+            f"dbname='{DB_NAME}' user='{DB_USER}' host='{DB_SERVER}' " +
+            F"port='{DB_PORT}' password='{DB_PASSWORD}'")
+        c = db.cursor()
+        return db, c
+    except psycopg2.Error as e:
+        print("Error connecting to the database: " + str(e))
+        sys.exit(1)
 
 
-def get_most_popular_articles():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(SQL_GET_MOST_POPULAR_ARTICLES)
+def execute_query(query):
+    """
+    Creates a DB connection, executes the given query, closes the connection
+    and returns the results of the query.
+    """
+    conn, cursor = connect()
+    cursor.execute(query)
     rows = cursor.fetchall()
     conn.close()
-    return [(row[0], row[1]) for row in rows]
+    return rows
 
 
-def get_most_popular_authors():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(SQL_GET_MOST_POPULAR_AUTHORS)
-    rows = cursor.fetchall()
-    conn.close()
-    return [(row[0], row[1]) for row in rows]
-
-
-def get_days_with_high_errors():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(SQL_GET_DAYS_WITH_HIGH_ERRORS)
-    rows = cursor.fetchall()
-    conn.close()
-    return [(row[0], row[1], row[2]) for row in rows]
-
-
-if __name__ == "__main__":
-    # 1. List most popular articles
+def print_most_popular_articles():
+    """
+    Print most popular articles
+    """
     print("Most popular articles:")
-    for article in get_most_popular_articles():
+    rows = execute_query(SQL_GET_MOST_POPULAR_ARTICLES)
+    for article in rows:
         print(f"\"{article[0]}\" - {article[1]} views")
 
-    # 2. List most popular authors
+
+def print_most_popular_authors():
+    """
+    Prints most popular authors
+    """
     print("\nMost popular authors:")
-    for author in get_most_popular_authors():
+    rows = execute_query(SQL_GET_MOST_POPULAR_AUTHORS)
+    for author in rows:
         print(f"\"{author[0]}\" - {author[1]} views")
 
-    # 3. List days with HTTP error response rate >= 1%
+
+def print_days_with_high_errors():
+    """
+    Prints days with HTTP error response rate >= 1%
+    """
     print('\nDays with error response rate >= 1%:')
-    for day in get_days_with_high_errors():
+    rows = execute_query(SQL_GET_DAYS_WITH_HIGH_ERRORS)
+    for day in rows:
         # Calculate percent error and round to two decimal places
         percent_error = round(100 * (day[2] - day[1]) / day[2], 2)
         if percent_error >= 1:
             print(re.sub(' +', ' ', f"{day[0]} - {percent_error}% errors"))
+
+
+if __name__ == "__main__":
+    print_most_popular_articles()
+    print_most_popular_authors()
+    print_days_with_high_errors()
