@@ -1,5 +1,5 @@
 # Udacity Full Stack Web Developer Project 3: Logs Analysis
-The logs analysis project is the third project in the Udacity Full Stack Web Developer nano-degree.
+The logs analysis project is the third project in the Udacity Nanodegree: Full Stack Web Developer.
 
 It is a single Python script that connects to a PostgreSQL database (DB schema/data included with the class), executes a handful of queries and then presents the data in a readable format.
 
